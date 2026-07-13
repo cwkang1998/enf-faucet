@@ -14,8 +14,8 @@ contract Faucet is Ownable {
     event FaucetClaimed(address indexed user, uint256 nextUnlockTime);
 
     // Storage variables
-    uint256 constant public allowedPAXGAmount = 100_000_000_000_000_000_000; // 100
-    uint256 constant public allowedUSDCAmount = 100_000_000_000_000_000_000_000; // 10_000
+    uint256 public constant allowedPAXGAmount = 100_000_000_000_000_000_000; // 100
+    uint256 public constant allowedUSDCAmount = 10_000_000_000; // 10,000 USDC (6 decimals)
     uint256 public waitTime;
     mapping(address => uint256) public userUnlockTime;
 
@@ -40,7 +40,10 @@ contract Faucet is Ownable {
         }
 
         // Ensure faucet has enough ETH
-        if (paxgInstance.balanceOf(address(this)) < allowedPAXGAmount || usdcInstance.balanceOf(address(this)) < allowedUSDCAmount) {
+        if (
+            paxgInstance.balanceOf(address(this)) < allowedPAXGAmount
+                || usdcInstance.balanceOf(address(this)) < allowedUSDCAmount
+        ) {
             revert InsufficientFunds();
         }
 
@@ -52,7 +55,7 @@ contract Faucet is Ownable {
         bool paxgSuccess = paxgInstance.transfer(caller, allowedPAXGAmount);
         bool usdcSuccess = usdcInstance.transfer(caller, allowedUSDCAmount);
 
-        if(!paxgSuccess || !usdcSuccess) {
+        if (!paxgSuccess || !usdcSuccess) {
             revert TransferFailed();
         }
 
