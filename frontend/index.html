@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Claim PAXG and USDC test tokens on Sepolia." />
+    <title>Sepolia Test Token Faucet</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="faucet-card">
+      <header>
+        <p class="eyebrow">Sepolia Testnet</p>
+        <h1>Test Token Faucet</h1>
+        <p class="intro">Connect your wallet to claim both test tokens in one transaction.</p>
+      </header>
+
+      <section class="token-grid" aria-label="Claim amounts">
+        <div class="token">
+          <span class="token-symbol">PAXG</span>
+          <strong>100 PAXG</strong>
+        </div>
+        <div class="token">
+          <span class="token-symbol">USDC</span>
+          <strong>10,000 USDC</strong>
+        </div>
+      </section>
+
+      <dl class="details">
+        <div>
+          <dt>Wallet</dt>
+          <dd id="walletValue">Not connected</dd>
+        </div>
+        <div>
+          <dt>Network</dt>
+          <dd id="networkValue">—</dd>
+        </div>
+        <div>
+          <dt>Eligibility</dt>
+          <dd id="eligibilityValue">Connect your wallet to check</dd>
+        </div>
+      </dl>
+
+      <button id="actionButton" type="button">Connect wallet</button>
+      <p id="statusMessage" class="status" role="status" aria-live="polite"></p>
+
+      <footer>
+        <span>Faucet contract</span>
+        <code id="contractValue">Not configured</code>
+      </footer>
+    </main>
+
+    <script type="module" src="./app.mjs"></script>
+  </body>
+</html>
