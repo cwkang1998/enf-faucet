@@ -63,6 +63,16 @@ h1 {
   border-radius: 12px;
 }
 
+.token-balance {
+  margin-top: 4px;
+  color: #687386;
+  font-size: 0.78rem;
+}
+
+.token-balance strong {
+  color: #4b5565;
+}
+
 .token-symbol,
 dt,
 footer span {
