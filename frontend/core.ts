@@ -1,18 +1,67 @@
+import type { Address } from "viem";
+
 export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-export function isConfiguredAddress(address) {
+export type FundingStatus = "loading" | "error" | "underfunded" | "ready";
+export type EligibilityStatus = "idle" | "loading" | "error" | "ready";
+export type PrimaryActionName =
+  | "busy"
+  | "wait"
+  | "connect"
+  | "switch"
+  | "configure"
+  | "claim";
+
+export interface TokenFunding {
+  balance?: bigint | null;
+  claimAmount?: bigint | null;
+}
+
+export interface FaucetFunding {
+  paxg?: TokenFunding;
+  usdc?: TokenFunding;
+}
+
+export interface PrimaryActionState {
+  busy?: boolean;
+  walletReady?: boolean;
+  connected?: boolean;
+  correctNetwork?: boolean;
+  configured?: boolean;
+  fundingStatus?: FundingStatus;
+  eligibilityStatus?: EligibilityStatus;
+  eligible?: boolean | null;
+}
+
+export interface PrimaryAction {
+  label: string;
+  action: PrimaryActionName;
+  disabled: boolean;
+}
+
+interface ErrorLike {
+  name?: string;
+  shortMessage?: string;
+  details?: string;
+  message?: string;
+  code?: number;
+}
+
+export function isConfiguredAddress(
+  address: string | null | undefined,
+): address is Address {
   return (
     /^0x[0-9a-fA-F]{40}$/.test(address ?? "") &&
-    address.toLowerCase() !== ZERO_ADDRESS
+    address?.toLowerCase() !== ZERO_ADDRESS
   );
 }
 
-export function formatAddress(address) {
+export function formatAddress(address: string | null | undefined): string {
   if (!address) return "Not connected";
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
 }
 
-export function formatTokenBalance(value, decimals) {
+export function formatTokenBalance(value: bigint, decimals: number): string {
   const unit = 10n ** BigInt(decimals);
   const whole = value / unit;
   const fraction = ((value % unit) * 100n) / unit;
@@ -27,7 +76,9 @@ export function formatTokenBalance(value, decimals) {
     : formattedWhole;
 }
 
-export function hasSufficientFunding(funding) {
+export function hasSufficientFunding(
+  funding: FaucetFunding | null | undefined,
+): funding is Required<FaucetFunding> {
   const amounts = [
     funding?.paxg?.balance,
     funding?.paxg?.claimAmount,
@@ -37,17 +88,25 @@ export function hasSufficientFunding(funding) {
 
   return (
     amounts.every((amount) => typeof amount === "bigint") &&
+    funding?.paxg?.balance !== null &&
+    funding?.paxg?.balance !== undefined &&
+    funding.paxg.claimAmount !== null &&
+    funding.paxg.claimAmount !== undefined &&
     funding.paxg.balance >= funding.paxg.claimAmount &&
+    funding?.usdc?.balance !== null &&
+    funding?.usdc?.balance !== undefined &&
+    funding.usdc.claimAmount !== null &&
+    funding.usdc.claimAmount !== undefined &&
     funding.usdc.balance >= funding.usdc.claimAmount
   );
 }
 
-export function formatUnlockTime(timestampSeconds) {
+export function formatUnlockTime(timestampSeconds: bigint | number): string {
   const iso = new Date(Number(timestampSeconds) * 1_000).toISOString();
   return `${iso.slice(0, 10)} ${iso.slice(11, 16)} UTC`;
 }
 
-export function getPrimaryAction(state) {
+export function getPrimaryAction(state: PrimaryActionState): PrimaryAction {
   if (state.busy) {
     return {
       label: "Transaction pending…",
@@ -56,8 +115,8 @@ export function getPrimaryAction(state) {
     };
   }
 
-  if (!state.walletInstalled) {
-    return { label: "Install a wallet", action: "install", disabled: false };
+  if (!state.walletReady) {
+    return { label: "Loading wallets…", action: "wait", disabled: true };
   }
 
   if (!state.connected) {
@@ -127,12 +186,19 @@ export function getPrimaryAction(state) {
   return { label: "Claim test tokens", action: "claim", disabled: false };
 }
 
-export function getErrorMessage(error) {
-  const text = [error?.name, error?.shortMessage, error?.details, error?.message]
+export function getErrorMessage(error: unknown): string {
+  const errorLike: ErrorLike =
+    typeof error === "object" && error !== null ? (error as ErrorLike) : {};
+  const text = [
+    errorLike.name,
+    errorLike.shortMessage,
+    errorLike.details,
+    errorLike.message,
+  ]
     .filter(Boolean)
     .join(" ");
 
-  if (error?.code === 4001 || text.includes("UserRejectedRequestError")) {
+  if (errorLike.code === 4001 || text.includes("UserRejectedRequestError")) {
     return "Request rejected in your wallet.";
   }
   if (text.includes("AlreadyClaimed")) {
@@ -145,5 +211,9 @@ export function getErrorMessage(error) {
     return "The faucet could not transfer the test tokens.";
   }
 
-  return error?.shortMessage || error?.message || "Something went wrong. Try again.";
+  return (
+    errorLike.shortMessage ||
+    errorLike.message ||
+    "Something went wrong. Try again."
+  );
 }

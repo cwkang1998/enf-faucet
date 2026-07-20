@@ -1,0 +1,7 @@
+allowBuilds:
+  bufferutil: true
+  keccak: true
+  utf-8-validate: true
+minimumReleaseAgeExclude:
+  - '@tanstack/query-core@5.101.3'
+  - '@tanstack/react-query@5.101.3'

@@ -1,3 +1,5 @@
+import type { Abi } from "viem";
+
 const SETUP_ERROR =
   "Forge ABI artifacts unavailable. Run forge build before serving the frontend.";
 
@@ -10,7 +12,18 @@ const ERC20_ARTIFACT_URL = new URL(
   import.meta.url,
 );
 
-export async function loadContractAbis(fetchImpl = fetch) {
+interface ContractArtifact {
+  abi?: unknown;
+}
+
+export interface ContractAbis {
+  faucetAbi: Abi;
+  erc20Abi: Abi;
+}
+
+export async function loadContractAbis(
+  fetchImpl: typeof fetch = fetch,
+): Promise<ContractAbis> {
   try {
     const responses = await Promise.all([
       fetchImpl(FAUCET_ARTIFACT_URL),
@@ -19,9 +32,9 @@ export async function loadContractAbis(fetchImpl = fetch) {
 
     if (responses.some((response) => !response.ok)) throw new Error();
 
-    const [faucetArtifact, erc20Artifact] = await Promise.all(
+    const [faucetArtifact, erc20Artifact] = (await Promise.all(
       responses.map((response) => response.json()),
-    );
+    )) as [ContractArtifact, ContractArtifact];
 
     if (
       !Array.isArray(faucetArtifact?.abi) ||
@@ -33,8 +46,8 @@ export async function loadContractAbis(fetchImpl = fetch) {
     }
 
     return {
-      faucetAbi: faucetArtifact.abi,
-      erc20Abi: erc20Artifact.abi,
+      faucetAbi: faucetArtifact.abi as Abi,
+      erc20Abi: erc20Artifact.abi as Abi,
     };
   } catch {
     throw new Error(SETUP_ERROR);
