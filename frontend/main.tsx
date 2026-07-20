@@ -1,12 +1,22 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
 import {
   getDefaultConfig,
   lightTheme,
   RainbowKitProvider,
 } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
+import {
+  injectedWallet,
+  metaMaskWallet,
+  okxWallet,
+  phantomWallet,
+  rabbyWallet,
+  rainbowWallet,
+  trustWallet,
+  walletConnectWallet,
+} from "@rainbow-me/rainbowkit/wallets";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
 import { http, WagmiProvider } from "wagmi";
 import { sepolia } from "wagmi/chains";
 
@@ -22,6 +32,23 @@ export const wagmiConfig = getDefaultConfig({
   appName: "Sepolia Test Token Faucet",
   projectId,
   chains: [sepolia],
+  wallets: [
+    {
+      groupName: "Popular",
+      wallets: [
+        metaMaskWallet,
+        rabbyWallet,
+        walletConnectWallet,
+        trustWallet,
+        okxWallet,
+        phantomWallet,
+      ],
+    },
+    {
+      groupName: "Other",
+      wallets: [injectedWallet, rainbowWallet],
+    },
+  ],
   transports: {
     [sepolia.id]: http(),
   },
